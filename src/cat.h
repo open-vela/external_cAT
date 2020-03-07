@@ -36,6 +36,20 @@ extern "C" {
 /* only forward declaration (looks for definition below) */
 struct cat_command;
 
+typedef enum {
+        CAT_VAR_INT_DEC = 0,
+        CAT_VAR_UINT_DEC,
+        CAT_VAR_NUM_HEX,
+        CAT_VAR_BYTES_HEX,
+        CAT_VAR_BYTES_STRING
+} cat_var_type;
+
+struct cat_var_descriptor {
+        cat_var_type type;
+        void *data;
+        size_t data_size;
+};
+
 /* write command function handler */
 typedef int (*cat_cmd_write_handler)(const struct cat_command *cmd, const uint8_t *data, const size_t data_size);
 /* read command function handler */
@@ -82,6 +96,9 @@ struct cat_command {
 	cat_cmd_write_handler write; /* write command handler */
 	cat_cmd_read_handler read; /* read command handler */
 	cat_cmd_run_handler run; /* run command handler */
+
+        struct cat_var_descriptor const *var;
+        size_t var_num;
 };
 
 /* structure with at command parser descriptor */
