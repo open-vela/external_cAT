@@ -366,7 +366,7 @@ static int command_found(struct cat_object *self)
                         break;
                 }
 
-                if (self->cmd->run(self->cmd->name) != 0) {
+                if (self->cmd->run(self->cmd) != 0) {
                         ack_error(self);
                         break;    
                 }
@@ -378,7 +378,7 @@ static int command_found(struct cat_object *self)
                         ack_error(self);
                         break;
                 }
-                if (self->cmd->read(self->cmd->name, self->desc->buf, &size, self->desc->buf_size) != 0) {
+                if (self->cmd->read(self->cmd, self->desc->buf, &size, self->desc->buf_size) != 0) {
                         ack_error(self);
                         break;
                 }
@@ -407,11 +407,6 @@ static int command_not_found(struct cat_object *self)
         return 1;
 }
 
-static int parse_and_write_args(struct cat_object *self, const uint8_t *data, const size_t data_size)
-{
-        
-}
-
 static int parse_command_args(struct cat_object *self)
 {
         assert(self != NULL);
@@ -421,19 +416,11 @@ static int parse_command_args(struct cat_object *self)
 
         switch (self->current_char) {
         case '\n':
-                if (self->cmd->var == NULL) {
-                        if (self->cmd->write == NULL) {
-                                ack_error(self);
-                                break;
-                        }
-                        if (self->cmd->write(self->cmd->name, self->desc->buf, self->length) != 0) {
-                                ack_error(self);
-                                break;
-                        }
-                        ack_ok(self);
+                if (self->cmd->write == NULL) {
+                        ack_error(self);
                         break;
                 }
-                if (parse_and_write_args(self, self->desc->buf, self->length) != 0) {
+                if (self->cmd->write(self->cmd, self->desc->buf, self->length) != 0) {
                         ack_error(self);
                         break;
                 }
