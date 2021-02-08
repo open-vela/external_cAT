@@ -151,12 +151,6 @@ static cat_return_state start_write(const struct cat_command *cmd, const uint8_t
         return CAT_RETURN_STATE_HOLD;
 }
 
-/* run command handler attached to HELP command for printing commands list */
-static int print_cmd_list(const struct cat_command *cmd)
-{
-        return CAT_RETURN_STATE_PRINT_CMD_LIST_OK;
-}
-
 /* declaring start command variables array */
 static struct cat_variable start_vars[] = {
         {
@@ -164,8 +158,7 @@ static struct cat_variable start_vars[] = {
                 .data = &mode,
                 .data_size = sizeof(mode),
                 .name = "MODE",
-                .write = mode_write,
-                .access = CAT_VAR_ACCESS_WRITE_ONLY,
+                .write = mode_write
         }
 };
 
@@ -185,10 +178,6 @@ static struct cat_command cmds[] = {
                 .only_test = true,
                 .var = scan_vars,
                 .var_num = sizeof(scan_vars) / sizeof(scan_vars[0])
-        },
-        {
-                .name = "#HELP",
-                .run = print_cmd_list,
         },
         {
                 .name = "#QUIT",

@@ -135,150 +135,6 @@ static struct cat_variable vars[] = {
         }
 };
 
-static struct cat_variable vars_ro[] = {
-        {
-                .type = CAT_VAR_INT_DEC,
-                .data = &var_int8,
-                .data_size = sizeof(var_int8),
-                .name = "x",
-                .access = CAT_VAR_ACCESS_READ_ONLY
-        },
-        {
-                .type = CAT_VAR_INT_DEC,
-                .data = &var_int16,
-                .data_size = sizeof(var_int16),
-                .name = "y",
-                .access = CAT_VAR_ACCESS_READ_ONLY
-        },
-        {
-                .type = CAT_VAR_INT_DEC,
-                .data = &var_int32,
-                .data_size = sizeof(var_int32),
-                .access = CAT_VAR_ACCESS_READ_ONLY
-        },
-        {
-                .type = CAT_VAR_UINT_DEC,
-                .data = &var_uint8,
-                .data_size = sizeof(var_uint8),
-                .access = CAT_VAR_ACCESS_READ_ONLY
-        },
-        {
-                .type = CAT_VAR_UINT_DEC,
-                .data = &var_uint16,
-                .data_size = sizeof(var_uint16),
-                .access = CAT_VAR_ACCESS_READ_ONLY
-        },
-        {
-                .type = CAT_VAR_UINT_DEC,
-                .data = &var_uint32,
-                .data_size = sizeof(var_uint32),
-                .access = CAT_VAR_ACCESS_READ_ONLY
-        },
-        {
-                .type = CAT_VAR_NUM_HEX,
-                .data = &var_hex8,
-                .data_size = sizeof(var_hex8),
-                .access = CAT_VAR_ACCESS_READ_ONLY
-        },
-        {
-                .type = CAT_VAR_NUM_HEX,
-                .data = &var_hex16,
-                .data_size = sizeof(var_hex16),
-                .access = CAT_VAR_ACCESS_READ_ONLY
-        },
-        {
-                .type = CAT_VAR_NUM_HEX,
-                .data = &var_hex32,
-                .data_size = sizeof(var_hex32),
-                .access = CAT_VAR_ACCESS_READ_ONLY
-        },
-        {
-                .type = CAT_VAR_BUF_HEX,
-                .data = &var_buf,
-                .data_size = sizeof(var_buf),
-                .access = CAT_VAR_ACCESS_READ_ONLY
-        },
-        {
-                .type = CAT_VAR_BUF_STRING,
-                .data = &var_string,
-                .data_size = sizeof(var_string),
-                .name = "msg",
-                .access = CAT_VAR_ACCESS_READ_ONLY
-        }
-};
-
-static struct cat_variable vars_wo[] = {
-        {
-                .type = CAT_VAR_INT_DEC,
-                .data = &var_int8,
-                .data_size = sizeof(var_int8),
-                .name = "x",
-                .access = CAT_VAR_ACCESS_WRITE_ONLY
-        },
-        {
-                .type = CAT_VAR_INT_DEC,
-                .data = &var_int16,
-                .data_size = sizeof(var_int16),
-                .name = "y",
-                .access = CAT_VAR_ACCESS_WRITE_ONLY
-        },
-        {
-                .type = CAT_VAR_INT_DEC,
-                .data = &var_int32,
-                .data_size = sizeof(var_int32),
-                .access = CAT_VAR_ACCESS_WRITE_ONLY
-        },
-        {
-                .type = CAT_VAR_UINT_DEC,
-                .data = &var_uint8,
-                .data_size = sizeof(var_uint8),
-                .access = CAT_VAR_ACCESS_WRITE_ONLY
-        },
-        {
-                .type = CAT_VAR_UINT_DEC,
-                .data = &var_uint16,
-                .data_size = sizeof(var_uint16),
-                .access = CAT_VAR_ACCESS_WRITE_ONLY
-        },
-        {
-                .type = CAT_VAR_UINT_DEC,
-                .data = &var_uint32,
-                .data_size = sizeof(var_uint32),
-                .access = CAT_VAR_ACCESS_WRITE_ONLY
-        },
-        {
-                .type = CAT_VAR_NUM_HEX,
-                .data = &var_hex8,
-                .data_size = sizeof(var_hex8),
-                .access = CAT_VAR_ACCESS_WRITE_ONLY
-        },
-        {
-                .type = CAT_VAR_NUM_HEX,
-                .data = &var_hex16,
-                .data_size = sizeof(var_hex16),
-                .access = CAT_VAR_ACCESS_WRITE_ONLY
-        },
-        {
-                .type = CAT_VAR_NUM_HEX,
-                .data = &var_hex32,
-                .data_size = sizeof(var_hex32),
-                .access = CAT_VAR_ACCESS_WRITE_ONLY
-        },
-        {
-                .type = CAT_VAR_BUF_HEX,
-                .data = &var_buf,
-                .data_size = sizeof(var_buf),
-                .access = CAT_VAR_ACCESS_WRITE_ONLY
-        },
-        {
-                .type = CAT_VAR_BUF_STRING,
-                .data = &var_string,
-                .data_size = sizeof(var_string),
-                .name = "msg",
-                .access = CAT_VAR_ACCESS_WRITE_ONLY
-        }
-};
-
 static struct cat_variable vars2[] = {
         {
                 .type = CAT_VAR_INT_DEC,
@@ -294,18 +150,6 @@ static struct cat_command cmds[] = {
 
                 .var = vars,
                 .var_num = sizeof(vars) / sizeof(vars[0])
-        },
-        {
-                .name = "+SETRO",
-
-                .var = vars_ro,
-                .var_num = sizeof(vars_ro) / sizeof(vars_ro[0])
-        },
-        {
-                .name = "+SETWO",
-
-                .var = vars_wo,
-                .var_num = sizeof(vars_wo) / sizeof(vars_wo[0])
         },
         {
                 .name = "+TEST",
@@ -416,8 +260,6 @@ static void prepare_input(const char *text)
 }
 
 static const char test_case_1[] = "\nAT+SET=?\n";
-static const char test_case_1_ro[] = "\nAT+SETRO=?\n";
-static const char test_case_1_wo[] = "\nAT+SETWO=?\n";
 static const char test_case_2[] = "\nAT+TEST=?\nAT+TEST2=?\r\nAT+AP=?\n";
 static const char test_case_3[] = "\nAT+ZZ=?\nAT+ZZ2=?\nAT+ZZ3=?\r\n";
 
@@ -430,22 +272,12 @@ int main(int argc, char **argv)
         prepare_input(test_case_1);
         while (cat_service(&at) != 0) {};
 
-        assert(strcmp(ack_results, "\n+SET=<x:INT8[RW]>,<y:INT16[RW]>,<INT32[RW]>,<UINT8[RW]>,<UINT16[RW]>,<UINT32[RW]>,<HEX8[RW]>,<HEX16[RW]>,<HEX32[RW]>,<HEXBUF[RW]>,<msg:STRING[RW]>\n\nOK\n") == 0);
-
-        prepare_input(test_case_1_ro);
-        while (cat_service(&at) != 0) {};
-
-        assert(strcmp(ack_results, "\n+SETRO=<x:INT8[RO]>,<y:INT16[RO]>,<INT32[RO]>,<UINT8[RO]>,<UINT16[RO]>,<UINT32[RO]>,<HEX8[RO]>,<HEX16[RO]>,<HEX32[RO]>,<HEXBUF[RO]>,<msg:STRING[RO]>\n\nOK\n") == 0);
-
-        prepare_input(test_case_1_wo);
-        while (cat_service(&at) != 0) {};
-
-        assert(strcmp(ack_results, "\n+SETWO=<x:INT8[WO]>,<y:INT16[WO]>,<INT32[WO]>,<UINT8[WO]>,<UINT16[WO]>,<UINT32[WO]>,<HEX8[WO]>,<HEX16[WO]>,<HEX32[WO]>,<HEXBUF[WO]>,<msg:STRING[WO]>\n\nOK\n") == 0);
+        assert(strcmp(ack_results, "\n+SET=<x:INT8>,<y:INT16>,<INT32>,<UINT8>,<UINT16>,<UINT32>,<HEX8>,<HEX16>,<HEX32>,<HEXBUF>,<msg:STRING>\n\nOK\n") == 0);
 
         prepare_input(test_case_2);
         while (cat_service(&at) != 0) {};
 
-        assert(strcmp(ack_results, "\n+TEST=<var:INT8[RW]>\ntest_desc\ntest\n\nOK\n\r\n+TEST2=<var:INT8[RW]>\r\ntest2_desc\r\n\r\nOK\r\n\nERROR\n") == 0);
+        assert(strcmp(ack_results, "\n+TEST=<var:INT8>\ntest_desc\ntest\n\nOK\n\r\n+TEST2=<var:INT8>\r\ntest2_desc\r\n\r\nOK\r\n\nERROR\n") == 0);
 
         prepare_input(test_case_3);
         while (cat_service(&at) != 0) {};
