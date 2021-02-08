@@ -51,13 +51,6 @@ typedef enum {
         CAT_VAR_BUF_STRING /* string variable */
 } cat_var_type;
 
-/* enum type wirh variable accessors definitions */
-typedef enum {
-        CAT_VAR_ACCESS_READ_WRITE = 0, /* there will be possible to read and write variable */
-        CAT_VAR_ACCESS_READ_ONLY, /* there will be possible to read only variable */
-        CAT_VAR_ACCESS_WRITE_ONLY, /* there will be possible to write only variable */
-} cat_var_access;
-
 /* enum type with function status */
 typedef enum {
         CAT_STATUS_ERROR_BUFFER_EMPTY = -7,
@@ -102,7 +95,6 @@ struct cat_variable {
         cat_var_type type; /* variable type (needed for parsing and validating) */
         void *data; /* generic pointer to statically allocated memory for variable data read/write/validate operations */
         size_t data_size; /* variable data size, pointed by data pointer */
-        cat_var_access access; /* variable accessor */
 
         cat_var_write_handler write; /* write variable handler */
         cat_var_read_handler read; /* read variable handler */
@@ -284,6 +276,7 @@ struct cat_object {
         struct cat_mutex_interface const *mutex; /* pointer to at command parser mutex interface */
 
         size_t index; /* index used to iterate over commands and variables */
+        size_t partial_cntr; /* partial match commands counter */
         size_t length; /* length of input command name and command arguments */
         size_t position; /* position of actually parsed char in arguments string */
         size_t write_size; /* size of parsed buffer hex or buffer string */

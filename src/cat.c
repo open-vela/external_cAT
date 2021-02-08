@@ -100,28 +100,6 @@ cat_status cat_is_hold(struct cat_object *self)
         return s;
 }
 
-static bool is_variables_access_possible(struct cat_object *self, const struct cat_command *cmd, cat_var_access access)
-{
-        size_t i;
-        bool ok;
-        struct cat_variable const *var;
-        (void)self;
-
-        if (cmd->var == NULL)
-                return false;
-
-        ok = false;
-        for (i = 0; i < cmd->var_num; i++) {
-                var = &cmd->var[i];
-                if ((var->access == CAT_VAR_ACCESS_READ_WRITE) || (var->access == access)) {
-                        ok = true;
-                        break;
-                }
-        }
-
-        return ok;
-}
-
 static bool is_unsolicited_buffer_full(struct cat_object *self)
 {
         assert(self != NULL);
@@ -446,12 +424,13 @@ static void prepare_search_command(struct cat_object *self)
         assert(self != NULL);
 
         self->index = 0;
+        self->partial_cntr = 0;
         self->cmd = NULL;
 }
 
 static int is_valid_cmd_name_char(const char ch)
 {
-        return (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || (ch == '+') || (ch == '#') || (ch == '$') || (ch == '@');
+        return (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || (ch == '+') || (ch == '#') || (ch == '$') || (ch == '@') || (ch == '_');
 }
 
 static int is_valid_dec_char(const char ch)
@@ -706,6 +685,7 @@ static cat_status search_command(struct cat_object *self)
                                 return CAT_STATUS_BUSY;
                         }
                         self->cmd = get_command_by_index(self, self->index);
+                        self->partial_cntr++;
                 } else if (cmd_state == CAT_CMD_STATE_FULL_MATCH) {
                         self->cmd = get_command_by_index(self, self->index);
                         self->state = CAT_STATE_COMMAND_FOUND;
@@ -717,7 +697,7 @@ static cat_status search_command(struct cat_object *self)
                 if (self->cmd == NULL) {
                         self->state = (self->current_char == '\n') ? CAT_STATE_COMMAND_NOT_FOUND : CAT_STATE_ERROR;
                 } else {
-                        self->state = CAT_STATE_COMMAND_FOUND;
+                        self->state = (self->partial_cntr == 1) ? CAT_STATE_COMMAND_FOUND : CAT_STATE_COMMAND_NOT_FOUND;
                 }
         }
 
@@ -740,7 +720,7 @@ static void start_processing_format_read_args(struct cat_object *self)
                 return;
         }
 
-        if (is_variables_access_possible(self, self->cmd, CAT_VAR_ACCESS_READ_ONLY) != false) {
+        if ((self->cmd->var != NULL) && (self->cmd->var_num > 0)) {
                 self->state = CAT_STATE_FORMAT_READ_ARGS;
                 self->index = 0;
                 self->var = &self->cmd->var[self->index];
@@ -926,11 +906,7 @@ static int parse_buffer_hexadecimal(struct cat_object *self)
                 ch = to_upper(ch);
 
                 if ((size > 0) && (state == 0) && ((ch == 0) || (ch == ','))) {
-                        if (self->var->access == CAT_VAR_ACCESS_READ_ONLY) {
-                                self->write_size = 0;
-                        } else {
-                                self->write_size = size;
-                        }
+                        self->write_size = size;
                         return (ch == ',') ? 1 : 0;
                 }
 
@@ -943,11 +919,7 @@ static int parse_buffer_hexadecimal(struct cat_object *self)
                 if (state != 0) {
                         if (size >= self->var->data_size)
                                 return -1;
-                        if (self->var->access == CAT_VAR_ACCESS_READ_ONLY) {
-                                size++;
-                        } else {
-                                ((uint8_t *)(self->var->data))[size++] = byte;
-                        }
+                        ((uint8_t *)(self->var->data))[size++] = byte;
                         byte = 0;
                 }
 
@@ -987,11 +959,7 @@ static int parse_buffer_string(struct cat_object *self)
                         }
                         if (size >= self->var->data_size)
                                 return -1;
-                        if (self->var->access == CAT_VAR_ACCESS_READ_ONLY) {
-                                size++;
-                        } else {
-                                ((uint8_t *)(self->var->data))[size++] = ch;
-                        }
+                        ((uint8_t *)(self->var->data))[size++] = ch;
                         break;
                 case 2:
                         switch (ch) {
@@ -1009,23 +977,15 @@ static int parse_buffer_string(struct cat_object *self)
                         }
                         if (size >= self->var->data_size)
                                 return -1;
-                        if (self->var->access == CAT_VAR_ACCESS_READ_ONLY) {
-                                size++;
-                        } else {
-                                ((uint8_t *)(self->var->data))[size++] = ch;
-                        }
+                        ((uint8_t *)(self->var->data))[size++] = ch;
                         state = 1;
                         break;
                 case 3:
                         if ((ch == 0) || (ch == ',')) {
                                 if (size >= self->var->data_size)
                                         return -1;
-                                if (self->var->access == CAT_VAR_ACCESS_READ_ONLY) {
-                                        self->write_size = 0;
-                                } else {
-                                        ((uint8_t *)(self->var->data))[size] = 0;
-                                        self->write_size = size;
-                                }
+                                ((uint8_t *)(self->var->data))[size] = 0;
+                                self->write_size = size;
                                 return (ch == ',') ? 1 : 0;
                         } else {
                                 return -1;
@@ -1039,11 +999,6 @@ static int parse_buffer_string(struct cat_object *self)
 
 static int validate_int_range(struct cat_object *self, int64_t val)
 {
-        if (self->var->access == CAT_VAR_ACCESS_READ_ONLY) {
-                self->write_size = 0;
-                return 0;
-        }
-
         switch (self->var->data_size) {
         case 1:
                 if ((val < INT8_MIN) || (val > INT8_MAX))
@@ -1069,11 +1024,6 @@ static int validate_int_range(struct cat_object *self, int64_t val)
 
 static int validate_uint_range(struct cat_object *self, uint64_t val)
 {
-        if (self->var->access == CAT_VAR_ACCESS_READ_ONLY) {
-                self->write_size = 0;
-                return 0;
-        }
-
         switch (self->var->data_size) {
         case 1:
                 if (val > UINT8_MAX)
@@ -1218,9 +1168,6 @@ static int format_int_decimal(struct cat_object *self)
                 return -1;
         }
 
-        if (self->var->access == CAT_VAR_ACCESS_WRITE_ONLY)
-                val = 0;
-
         if (print_format_num(self, "%d", val) != 0)
                 return -1;
 
@@ -1246,9 +1193,6 @@ static int format_uint_decimal(struct cat_object *self)
         default:
                 return -1;
         }
-
-        if (self->var->access == CAT_VAR_ACCESS_WRITE_ONLY)
-                val = 0;
 
         if (print_format_num(self, "%u", val) != 0)
                 return -1;
@@ -1280,9 +1224,6 @@ static int format_num_hexadecimal(struct cat_object *self)
                 return -1;
         }
 
-        if (self->var->access == CAT_VAR_ACCESS_WRITE_ONLY)
-                val = 0;
-
         if (print_format_num(self, fstr, val) != 0)
                 return -1;
 
@@ -1293,19 +1234,12 @@ static int format_buffer_hexadecimal(struct cat_object *self)
 {
         size_t i;
         uint8_t *buf;
-        uint8_t val;
 
         assert(self != NULL);
 
         buf = self->var->data;
         for (i = 0; i < self->var->data_size; i++) {
-                if (self->var->access == CAT_VAR_ACCESS_WRITE_ONLY) {
-                        val = 0;
-                } else {
-                        val = buf[i];
-                }
-
-                if (print_format_num(self, "%02X", val) != 0)
+                if (print_format_num(self, "%02X", buf[i]) != 0)
                         return -1;
         }
         return 0;
@@ -1315,22 +1249,15 @@ static int format_buffer_string(struct cat_object *self)
 {
         size_t i = 0;
         char *buf;
-        size_t buf_size;
         char ch;
 
         assert(self != NULL);
-
-        if (self->var->access == CAT_VAR_ACCESS_WRITE_ONLY) {
-                buf_size = 0;
-        } else {
-                buf_size = self->var->data_size;
-        }
 
         if (print_string_to_buf(self, "\"") != 0)
                 return -1;
 
         buf = self->var->data;
-        for (i = 0; i < buf_size; i++) {
+        for (i = 0; i < self->var->data_size; i++) {
                 ch = buf[i];
                 if (ch == 0)
                         break;
@@ -1362,24 +1289,8 @@ static int format_buffer_string(struct cat_object *self)
 static int format_info_type(struct cat_object *self)
 {
         char var_type[8];
-        char accessor[8];
 
         assert(self != NULL);
-
-        switch (self->var->access) {
-        case CAT_VAR_ACCESS_READ_WRITE:
-                strcpy(accessor, "RW");
-                break;
-        case CAT_VAR_ACCESS_READ_ONLY:
-                strcpy(accessor, "RO");
-                break;
-        case CAT_VAR_ACCESS_WRITE_ONLY:
-                strcpy(accessor, "WO");
-                break;
-        default:
-                strcpy(accessor, "??");
-                break;
-        }
 
         switch (self->var->type) {
         case CAT_VAR_INT_DEC:
@@ -1445,12 +1356,6 @@ static int format_info_type(struct cat_object *self)
                         return -1;
         }
         if (print_string_to_buf(self, var_type) != 0)
-                return -1;
-        if (print_string_to_buf(self, "[") != 0)
-                return -1;
-        if (print_string_to_buf(self, accessor) != 0)
-                return -1;
-        if (print_string_to_buf(self, "]") != 0)
                 return -1;
         if (print_string_to_buf(self, ">") != 0)
                 return -1;
@@ -1550,7 +1455,7 @@ static cat_status parse_command_args(struct cat_object *self)
                         ack_error(self);
                         break;
                 }
-                if (is_variables_access_possible(self, self->cmd, CAT_VAR_ACCESS_WRITE_ONLY) != false) {
+                if ((self->cmd->var != NULL) && (self->cmd->var_num > 0)) {
                         self->state = CAT_STATE_PARSE_WRITE_ARGS;
                         self->position = 0;
                         self->index = 0;
@@ -1776,7 +1681,7 @@ static void print_cmd_list(struct cat_object *self)
                 self->cmd_type = CAT_CMD_TYPE_READ;
                 break;
         case CAT_CMD_TYPE_READ:
-                if ((self->cmd->read != NULL) || (is_variables_access_possible(self, self->cmd, CAT_VAR_ACCESS_READ_ONLY) != false)) {  
+                if (self->cmd->read != NULL || ((self->cmd->var != NULL) && (self->cmd->var_num > 0))) {  
                         self->position = 0;
                         if (print_current_cmd_full_name(self, "?") != 0) {
                                 ack_error(self);
@@ -1787,7 +1692,7 @@ static void print_cmd_list(struct cat_object *self)
                 self->cmd_type = CAT_CMD_TYPE_WRITE;
                 break;
         case CAT_CMD_TYPE_WRITE:
-                if (self->cmd->write != NULL || (is_variables_access_possible(self, self->cmd, CAT_VAR_ACCESS_WRITE_ONLY) != false)) {  
+                if (self->cmd->write != NULL || ((self->cmd->var != NULL) && (self->cmd->var_num > 0))) {  
                         self->position = 0;
                         if (print_current_cmd_full_name(self, "=") != 0) {
                                 ack_error(self);

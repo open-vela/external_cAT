@@ -31,81 +31,43 @@ SOFTWARE.
 
 #include "../src/cat.h"
 
-static char read_results[256];
+static char run_results[256];
 static char ack_results[256];
 
 static char const *input_text;
 static size_t input_index;
 
-static int var_x, var_u1, var_u2;
-static struct cat_object at;
-
-static struct cat_command u_cmds[];
-
-static cat_return_state cmd_test(const struct cat_command *cmd, uint8_t *data, size_t *data_size, const size_t max_data_size)
+static int print_name(const struct cat_command *cmd)
 {
-        cat_status s;
-
-        strcat(read_results, " test:");
-        strcat(read_results, cmd->name);
-
-        if (strcmp(cmd->name, "+CMD") == 0) {
-                s = cat_trigger_unsolicited_test(&at, &u_cmds[1]);
-                assert(s == CAT_STATUS_OK);
-        }
-
-        return CAT_RETURN_STATE_DATA_OK;
+        strcat(run_results, cmd->name);
+        strcat(run_results, " ");
+        return 0;
 }
-
-static struct cat_variable u_vars[] = {
-        {
-                .name = "U1",
-                .type = CAT_VAR_INT_DEC,
-                .data = &var_u1,
-                .data_size = sizeof(var_u1)
-        },
-        {
-                .name = "U2",
-                .type = CAT_VAR_INT_DEC,
-                .data = &var_u2,
-                .data_size = sizeof(var_u2)
-        }
-};
-
-static struct cat_variable vars[] = {
-        {
-                .name = "X",
-                .type = CAT_VAR_INT_DEC,
-                .data = &var_x,
-                .data_size = sizeof(var_x)
-        }
-};
 
 static struct cat_command cmds[] = {
         {
-                .name = "+CMD",
-                .test = cmd_test,
-                .var = vars,
-                .var_num = sizeof(vars) / sizeof(vars[0]),
-        }
-};
-
-static struct cat_command u_cmds[] = {
-        {
-                .name = "+U1CMD",
-                .test = cmd_test,
-                .var = &u_vars[0],
-                .var_num = 1,
+                .name = "+TEST",
+                .run = print_name
         },
         {
-                .name = "+U2CMD",
-                .test = cmd_test,
-                .var = &u_vars[1],
-                .var_num = 1,
-        }
+                .name = "+TEST_A",
+                .run = print_name
+        },
+        {
+                .name = "+TEST_B",
+                .run = print_name
+        },
+        {
+                .name = "+ONE",
+                .run = print_name
+        },
+        {
+                .name = "+TWO",
+                .run = print_name
+        },
 };
 
-static char buf[128];
+static char buf[256];
 
 static struct cat_command_group cmd_group = {
         .cmd = cmds,
@@ -153,39 +115,35 @@ static void prepare_input(const char *text)
         input_text = text;
         input_index = 0;
 
-        var_x = 1;
-        var_u1 = 2;
-        var_u2 = 3;
-
+        memset(run_results, 0, sizeof(run_results));
         memset(ack_results, 0, sizeof(ack_results));
-        memset(read_results, 0, sizeof(read_results));
 }
 
-static const char test_case_1[] = "\nAT+CMD=?\n";
+static const char test_case_1[] = "\nAT\nAT+\nAT+T\nAT+TE\nAT+TES\nAT+TEST\nAT+TEST_\nAT+TEST_A\nAT+TEST_B\nAT+O\nAT+ON\nAT+ONE\nAT+TW\nAT+TWO\n";
+
+static void print_raw_text(char *p)
+{
+        while (*p != '\0') {
+                if (*p == '\n') {
+                        printf("\\n");
+                } else {
+                        putchar(*p);
+                }
+                p++;
+        }
+}
 
 int main(int argc, char **argv)
 {
-        cat_status s;
+	struct cat_object at;
 
 	cat_init(&at, &desc, &iface, NULL);
 
         prepare_input(test_case_1);
-
-        s = cat_is_unsolicited_buffer_full(&at);
-        assert(s == CAT_STATUS_OK);
-        s = cat_trigger_unsolicited_event(&at, &u_cmds[0], CAT_CMD_TYPE_TEST);
-        assert(s == CAT_STATUS_OK);
-        s = cat_is_unsolicited_buffer_full(&at);
-        assert(s == CAT_STATUS_ERROR_BUFFER_FULL);
-        s = cat_trigger_unsolicited_test(&at, &u_cmds[1]);
-        assert(s == CAT_STATUS_ERROR_BUFFER_FULL);
-
         while (cat_service(&at) != 0) {};
 
-        printf("%s\n", ack_results);
-
-        assert(strcmp(ack_results, "\n+U1CMD=<U1:INT32>\n\n+CMD=<X:INT32>\n\nOK\n\n+U2CMD=<U2:INT32>\n") == 0);
-        assert(strcmp(read_results, " test:+U1CMD test:+CMD test:+U2CMD") == 0);
-
+        assert(strcmp(ack_results, "\nOK\n\nERROR\n\nERROR\n\nERROR\n\nERROR\n\nOK\n\nERROR\n\nOK\n\nOK\n\nOK\n\nOK\n\nOK\n\nOK\n\nOK\n") == 0);
+        assert(strcmp(run_results, "+TEST +TEST_A +TEST_B +ONE +ONE +ONE +TWO +TWO ") == 0);
+        
 	return 0;
 }
