@@ -22,6 +22,12 @@ config LIB_CAT
 
 if LIB_CAT
 
+config LIB_CAT_USRDATA
+	bool "cAT usrdata"
+	default n
+	---help---
+		Enable cAT usrdata
+
 config LIB_CAT_EXAMPLES
 	bool "cAT examples"
 	default n

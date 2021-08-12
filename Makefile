@@ -19,6 +19,11 @@ include $(APPDIR)/Make.defs
 CSRCS    += $(wildcard src/*.c)
 MODULE    = $(CONFIG_LIB_CAT)
 
+ifeq ($(CONFIG_LIB_CAT_USRDATA),y)
+CSRCS    += src/cat_usrdata.c
+CFLAGS   += ${shell $(INCDIR) $(INCDIROPT) "$(CC)" src}
+endif
+
 ifneq ($(CONFIG_LIB_CAT_EXAMPLES),)
 PROGNAME += cat_demo
 MAINSRC  += example/demo.c
