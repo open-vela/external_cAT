@@ -21,6 +21,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
+#include <assert.h>
 #include "cat.h"
 #include "cat_usrdata.h"
 
