@@ -326,19 +326,17 @@ static void ack_error(struct cat_object *self)
 {
         assert(self != NULL);
         #if CONFIG_LIB_CAT_USRDATA
-        char *strbuf = (char *)malloc(512);
-        assert(NULL == strbuf);
+        char strbuf[512];
         memset(strbuf,0,ACKBUF_LEN);
         if(get_cat_user_databuf_errorcode())
         {
-                sprintf(strbuf,"ERROR%s",get_cat_user_databuf(CAT_USER_DATABUF_OPS_WRITE, CAT_USER_DATABUF_ACK_ERR));
+                sprintf(strbuf,"%s",get_cat_user_databuf(CAT_USER_DATABUF_OPS_WRITE, CAT_USER_DATABUF_ACK_ERR));
         }
         else
         {
                 sprintf(strbuf,"ERROR");
         }
         strncpy(get_atcmd_buf(self), strbuf, get_atcmd_buf_size(self));
-        free(strbuf);
         #else
         strncpy(get_atcmd_buf(self), "ERROR", get_atcmd_buf_size(self));
         #endif
@@ -351,12 +349,10 @@ static void ack_ok(struct cat_object *self)
         assert(self != NULL);
 
         #if CONFIG_LIB_CAT_USRDATA
-        char *strbuf = (char *)malloc(ACKBUF_LEN);
-        assert(NULL == strbuf);
+        char strbuf[512];
         memset(strbuf,0,ACKBUF_LEN);
-        sprintf(strbuf,"OK%s",get_cat_user_databuf(CAT_USER_DATABUF_OPS_WRITE, CAT_USER_DATABUF_ACK_OK));
+        sprintf(strbuf,"%s",get_cat_user_databuf(CAT_USER_DATABUF_OPS_WRITE, CAT_USER_DATABUF_ACK_OK));
         strncpy(get_atcmd_buf(self), strbuf, get_atcmd_buf_size(self));
-        free(strbuf);
         #else
         strncpy(get_atcmd_buf(self), "OK", get_atcmd_buf_size(self));
         #endif
