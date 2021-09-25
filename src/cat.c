@@ -1366,7 +1366,7 @@ static int validate_uint_range(struct cat_object *self, uint64_t val)
 static cat_status parse_write_args(struct cat_object *self)
 {
         int64_t val;
-        cat_status stat = 0;
+        cat_status stat;
 
         assert(self != NULL);
 
@@ -1417,6 +1417,9 @@ static cat_status parse_write_args(struct cat_object *self)
                         ack_error(self);
                         return CAT_STATUS_BUSY;
                 }
+                break;
+        default:
+                stat = 0;
                 break;
         }
 
@@ -1797,7 +1800,7 @@ static cat_status next_format_var_by_fsm(struct cat_object *self, cat_fsm_type f
 
 static cat_status format_read_args(struct cat_object *self, cat_fsm_type fsm)
 {
-        cat_status stat = 0;
+        cat_status stat;
 
         assert(self != NULL);
         assert(fsm < CAT_FSM_TYPE__TOTAL_NUM);
@@ -1824,6 +1827,9 @@ static cat_status format_read_args(struct cat_object *self, cat_fsm_type fsm)
                 break;
         case CAT_VAR_BUF_STRING:
                 stat = format_buffer_string(self, fsm);
+                break;
+        default:
+                stat = 0;
                 break;
         }
 
