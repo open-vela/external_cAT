@@ -326,8 +326,8 @@ static void ack_error(struct cat_object *self)
 {
         assert(self != NULL);
         #if CONFIG_LIB_CAT_USRDATA
-        char strbuf[512];
-        memset(strbuf,0,ACKBUF_LEN);
+        char strbuf[CONFIG_LIB_CAT_USRDATA_LEN];
+        memset(strbuf,0,sizeof(strbuf));
         if(get_cat_user_databuf_errorcode())
         {
                 sprintf(strbuf,"%s",get_cat_user_databuf(CAT_USER_DATABUF_OPS_WRITE, CAT_USER_DATABUF_ACK_ERR));
@@ -349,8 +349,8 @@ static void ack_ok(struct cat_object *self)
         assert(self != NULL);
 
         #if CONFIG_LIB_CAT_USRDATA
-        char strbuf[512];
-        memset(strbuf,0,ACKBUF_LEN);
+        char strbuf[CONFIG_LIB_CAT_USRDATA_LEN];
+        memset(strbuf,0,sizeof(strbuf));
         sprintf(strbuf,"%s",get_cat_user_databuf(CAT_USER_DATABUF_OPS_WRITE, CAT_USER_DATABUF_ACK_OK));
         strncpy(get_atcmd_buf(self), strbuf, get_atcmd_buf_size(self));
         #else

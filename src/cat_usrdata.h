@@ -18,11 +18,6 @@
 #ifndef __CAT_USRDATA_H
 #define __CAT_USRDATA_H
 
-/*user define*/
-#define WRITEBUF_LEN        256
-#define READBUF_LEN         WRITEBUF_LEN
-#define ACKBUF_LEN          512
-
 /*cat user date buffer for write/read*/
 typedef enum {
         CAT_USER_DATABUF_OPS_WRITE = 0,
@@ -40,7 +35,7 @@ typedef enum {
 /*usr data buf*/
 typedef struct cat_user_databuf_s
 {
-    uint8_t buf[WRITEBUF_LEN];
+    uint8_t buf[CONFIG_LIB_CAT_USRDATA_WRITE_LEN];
 }cat_user_databuf_t;
 
 /*usr data struct*/

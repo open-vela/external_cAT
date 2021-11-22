@@ -52,6 +52,22 @@ config LIB_CAT_STACKSIZE
 
 endif # LIB_CAT_EXAMPLES || LIB_CAT_TESTS
 
+if LIB_CAT_USRDATA
+
+config LIB_CAT_USRDATA_LEN
+	int "user data ackbuf length"
+	default 512
+
+config LIB_CAT_USRDATA_WRITE_LEN
+	int "user data write buffer length"
+	default 256
+
+config LIB_CAT_USRDATA_READ_LEN
+	int "user data read buffer length"
+	default 256
+
+endif #LIB_CAT_USRDATA
+
 endif # LIB_CAT
 
 endmenu # Plain C library for parsing AT commands

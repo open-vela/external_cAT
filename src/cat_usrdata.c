@@ -36,7 +36,7 @@ bool cat_user_databuf_clear(cat_user_data_ops_e ops,cat_user_data_ack_e ack)
 {
         assert(IS_DATA_OPS(ops));
         assert(IS_DATA_ACK(ack));
-        memset((cat_user_data.data_buf[ops][ack].buf),0,WRITEBUF_LEN);
+        memset((cat_user_data.data_buf[ops][ack].buf),0,CONFIG_LIB_CAT_USRDATA_WRITE_LEN);
         return true;
 }
 
