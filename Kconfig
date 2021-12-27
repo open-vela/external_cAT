@@ -60,7 +60,7 @@ config LIB_CAT_USRDATA_LEN
 
 config LIB_CAT_USRDATA_WRITE_LEN
 	int "user data write buffer length"
-	default 256
+	default 512
 
 config LIB_CAT_USRDATA_READ_LEN
 	int "user data read buffer length"
