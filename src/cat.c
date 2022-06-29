@@ -783,6 +783,8 @@ static bool is_command_disable(struct cat_object *self, size_t index)
 
                 if (cmd_group->cmd[index - j].disable != false)
                         return true;
+
+                break;
         }
 
         return false;
