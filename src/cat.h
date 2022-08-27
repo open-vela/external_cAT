@@ -30,11 +30,8 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-#include <stddef.h>
+#include <stdio.h>
 #include <stdbool.h>
-#if CONFIG_LIB_CAT_USRDATA
-#include "cat_usrdata.h"
-#endif
 
 /* only forward declarations (looks for definition below) */
 struct cat_command;
@@ -54,7 +51,7 @@ typedef enum {
         CAT_VAR_BUF_STRING /* string variable */
 } cat_var_type;
 
-/* enum type with variable accessors definitions */
+/* enum type wirh variable accessors definitions */
 typedef enum {
         CAT_VAR_ACCESS_READ_WRITE = 0, /* there will be possible to read and write variable */
         CAT_VAR_ACCESS_READ_ONLY, /* there will be possible to read only variable */
