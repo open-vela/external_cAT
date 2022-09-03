@@ -6,15 +6,12 @@ set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
 set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin )
 
-add_compile_options("$<$<CONFIG:DEBUG>:-g>")
-
 enable_testing( )
 
 include_directories( ${PROJECT_SOURCE_DIR}/src )
 
 file( GLOB SRC_FILES src/*.c )
 add_library( cat SHARED ${SRC_FILES} )
-target_include_directories(cat INTERFACE ${CMAKE_CURRENT_LIST_DIR}/src)
 set_target_properties( cat PROPERTIES VERSION 0.10.1 SOVERSION 1 )
 target_compile_options( cat PRIVATE -Werror -Wall -Wextra -pedantic )
 
@@ -28,7 +25,6 @@ add_executable( basic example/basic.c )
 target_link_libraries( basic cat )
 
 add_executable( unsolicited example/unsolicited.c )
-# target_compile_options(unsolicited PRIVATE -g)
 target_link_libraries( unsolicited cat )
 
 add_executable( test_parse tests/test_parse.c )
