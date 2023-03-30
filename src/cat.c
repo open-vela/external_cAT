@@ -73,9 +73,6 @@ static void reset_state(struct cat_object *self)
         }
         self->cmd = NULL;
         self->cmd_type = CAT_CMD_TYPE_NONE;
-        #if CONFIG_LIB_CAT_USRDATA
-        cat_user_data_init();
-        #endif
 }
 
 static void unsolicited_reset_state(struct cat_object *self)
@@ -326,21 +323,8 @@ static void start_flush_io_buffer_raw(struct cat_object *self, cat_state state_a
 static void ack_error(struct cat_object *self)
 {
         assert(self != NULL);
-        #if CONFIG_LIB_CAT_USRDATA
-        char strbuf[CONFIG_LIB_CAT_USRDATA_LEN];
-        memset(strbuf,0,sizeof(strbuf));
-        if(get_cat_user_databuf_errorcode())
-        {
-                sprintf(strbuf,"%s",get_cat_user_databuf(CAT_USER_DATABUF_OPS_WRITE, CAT_USER_DATABUF_ACK_ERR));
-        }
-        else
-        {
-                sprintf(strbuf,"ERROR");
-        }
-        strncpy(get_atcmd_buf(self), strbuf, get_atcmd_buf_size(self));
-        #else
+
         strncpy(get_atcmd_buf(self), "ERROR", get_atcmd_buf_size(self));
-        #endif
         start_flush_io_buffer(self, CAT_STATE_AFTER_FLUSH_RESET);
 }
 
@@ -348,14 +332,7 @@ static void ack_ok(struct cat_object *self)
 {
         assert(self != NULL);
 
-        #if CONFIG_LIB_CAT_USRDATA
-        char strbuf[CONFIG_LIB_CAT_USRDATA_LEN];
-        memset(strbuf,0,sizeof(strbuf));
-        sprintf(strbuf,"%s",get_cat_user_databuf(CAT_USER_DATABUF_OPS_WRITE, CAT_USER_DATABUF_ACK_OK));
-        strncpy(get_atcmd_buf(self), strbuf, get_atcmd_buf_size(self));
-        #else
         strncpy(get_atcmd_buf(self), "OK", get_atcmd_buf_size(self));
-        #endif
         start_flush_io_buffer(self, CAT_STATE_AFTER_FLUSH_RESET);
 }
 
