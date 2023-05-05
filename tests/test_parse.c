@@ -130,10 +130,27 @@ static void prepare_input(const char *text)
 
 static const char test_case_1[] = "\nsa\rAT\n\r\nAT\nAT+\n\nATA\r\natap\naaaattttap\na\n\r+test\r\n+testATA\nATAPATAP\n\rAT\rATA\nAT+test\r\n";
 
+void reset_global()
+{
+        cmds[0].disable = false;
+        cmds[1].disable = false;
+        cmds[2].disable = false;
+        cmds[0].name = "A";
+        cmds[1].name = "AP";
+        cmds[2].name = "+TEST";
+        cmds[0].run = a_run;
+        cmds[1].run = ap_run;
+        cmds[2].run = test_run;
+
+        cmd_desc[0]->name = NULL;
+        cmd_desc[0]->disable = false;
+}
+
 int main(int argc, char **argv)
 {
         struct cat_object at;
 
+        reset_global();
         cat_init(&at, &desc, &iface, NULL);
 
         prepare_input(test_case_1);
